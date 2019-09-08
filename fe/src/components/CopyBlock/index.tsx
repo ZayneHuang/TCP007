@@ -9,7 +9,7 @@ import styles from './index.less';
 const firstUpperCase = (pathString: string): string =>
   pathString
     .replace('.', '')
-    .split(/[\/\-]/)
+    .split(/\/|-/)
     .map((s): string => s.toLowerCase().replace(/( |^)[a-z]/g, L => L.toUpperCase()))
     .filter((s): boolean => !!s)
     .join('');
@@ -34,7 +34,6 @@ const BlockCodeView: React.SFC<{
   url: string;
 }> = ({ url }) => {
   const blockUrl = `npx umi block add ${firstUpperCase(url)} --path=${url}`;
-  // noinspection JSUnusedGlobalSymbols
   return (
     <div className={styles['copy-block-view']}>
       <Typography.Paragraph

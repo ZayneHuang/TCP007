@@ -60,7 +60,6 @@ const checkPermissions = <T, K>(
     try {
       const bool = authority(currentAuthority);
       // 函数执行后返回值是 Promise
-      // noinspection SuspiciousTypeOfGuard
       if (bool instanceof Promise) {
         return <PromiseRender<T, K> ok={target} error={Exception} promise={bool} />;
       }

@@ -44,6 +44,7 @@ if (pwa) {
         type="primary"
         onClick={() => {
           notification.close(key);
+          // noinspection JSIgnoredPromiseFromCall
           reloadSW();
         }}
       >

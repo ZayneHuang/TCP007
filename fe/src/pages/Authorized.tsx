@@ -24,7 +24,6 @@ const getRouteAuthority = (path: string, routeData: Route[]) => {
       }
     }
   });
-  // noinspection JSUnusedAssignment
   return authorities;
 };
 

@@ -1,4 +1,4 @@
-import { MenuTheme } from 'antd/es/menu/MenuContext';
+import { MenuTheme } from 'antd/es/menu';
 
 export type ContentWidth = 'Fluid' | 'Fixed';
 
@@ -54,7 +54,7 @@ export default {
   menu: {
     locale: true,
   },
-  title: 'TCP 007 协议系统',
+  title: 'Ant Design Pro',
   pwa: false,
   iconfontUrl: '',
 } as DefaultSettings;
