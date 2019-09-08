@@ -1,4 +1,5 @@
 /* eslint-disable eslint-comments/disable-enable-pair */
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable eslint-comments/no-unlimited-disable */
 const { spawn } = require('child_process');
@@ -21,7 +22,7 @@ startServer.stderr.on('data', data => {
 
 startServer.on('exit', () => {
   kill(process.env.PORT || 8000)
-    .then (r => console.log('server exit', r));
+    .then(r => console.log('server exit', r));
 });
 
 console.log('Starting development server for e2e tests...');
@@ -29,8 +30,8 @@ startServer.stdout.on('data', data => {
   console.log(data.toString());
   // hack code , wait umi
   if (
-    (!once && data.toString().indexOf('Compiled successfully') >= 0) ||
-    data.toString().indexOf('Theme generated successfully') >= 0
+    (!once && data.toString().indexOf('Compiled successfully') >= 0)
+    || data.toString().indexOf('Theme generated successfully') >= 0
   ) {
     // eslint-disable-next-line
     once = true;
