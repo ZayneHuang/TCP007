@@ -3,6 +3,8 @@ strictEslint.rules = {
   ...strictEslint.rules,
   '@typescript-eslint/no-explicit-any': 0,
   'no-console': 0,
+  quotes: 0,
+  'quote-props': 0,
   'import/order': 0,
   'max-len': 0,
 };
