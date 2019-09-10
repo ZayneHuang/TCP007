@@ -108,7 +108,7 @@ export default {
           routes: [
             {
               path: '/',
-              redirect: '/welcome',
+              redirect: '/list/basic/list',
             },
             {
               path: '/welcome',

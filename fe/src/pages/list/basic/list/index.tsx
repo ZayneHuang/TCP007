@@ -2,7 +2,6 @@ import {
   Button,
   Card,
   Col,
-  DatePicker,
   Dropdown,
   Form,
   Icon,
@@ -11,7 +10,6 @@ import {
   Menu,
   Modal,
   Progress,
-  Radio,
   Result,
   Row,
   Select,
@@ -23,16 +21,13 @@ import { FormComponentProps } from 'antd/es/form';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { connect } from 'dva';
 import { findDOMNode } from 'react-dom';
-import moment from 'moment';
 import { StateType } from './model';
-import { BasicListItemDataType } from './data.d';
+import { TaskStatsType } from './data.d';
 import styles from './style.less';
 
 const FormItem = Form.Item;
-const RadioButton = Radio.Button;
-const RadioGroup = Radio.Group;
 const SelectOption = Select.Option;
-const { Search, TextArea } = Input;
+const { TextArea } = Input;
 
 interface ListProps extends FormComponentProps {
   listBasicList: StateType;
@@ -43,8 +38,22 @@ interface ListProps extends FormComponentProps {
 interface ListState {
   visible: boolean;
   done: boolean;
-  current?: Partial<BasicListItemDataType>;
+  current: TaskStatsType;
 }
+
+const emptyTask: TaskStatsType = {
+  meta: {
+    id: 0,
+    taskName: '',
+    description: '',
+    createAt: '',
+    total: 0,
+    hit: 0,
+    accuracy: 0,
+    modelType: 1,
+  },
+  list: [],
+};
 
 @connect(
   ({
@@ -61,7 +70,13 @@ interface ListState {
   }),
 )
 class TaskList extends Component<ListProps, ListState> {
-  state: ListState = { visible: false, done: false, current: undefined };
+  state: ListState = {
+    visible: false,
+    done: false,
+    current: {
+      ...emptyTask,
+    },
+  };
 
   formLayout = {
     labelCol: { span: 7 },
@@ -78,16 +93,24 @@ class TaskList extends Component<ListProps, ListState> {
         count: 5,
       },
     });
+    dispatch({
+      type: 'listBasicList/fetchModels',
+      payload: {
+        count: 5,
+      },
+    });
   }
 
   showModal = () => {
     this.setState({
       visible: true,
-      current: undefined,
+      current: {
+        ...emptyTask,
+      },
     });
   };
 
-  showEditModal = (item: BasicListItemDataType) => {
+  showEditModal = (item: TaskStatsType) => {
     this.setState({
       visible: true,
       current: item,
@@ -113,10 +136,10 @@ class TaskList extends Component<ListProps, ListState> {
     e.preventDefault();
     const { dispatch, form } = this.props;
     const { current } = this.state;
-    const id = current ? current.id : '';
+    const id = current && current.meta ? current.meta.id : '';
 
     setTimeout(() => this.addBtn && this.addBtn.blur(), 0);
-    form.validateFields((err: string | undefined, fieldsValue: BasicListItemDataType) => {
+    form.validateFields((err: string | undefined, fieldsValue: TaskStatsType) => {
       if (err) return;
       this.setState({
         done: true,
@@ -128,7 +151,7 @@ class TaskList extends Component<ListProps, ListState> {
     });
   };
 
-  deleteItem = (id: string) => {
+  deleteItem = (id: number) => {
     const { dispatch } = this.props;
     dispatch({
       type: 'listBasicList/submit',
@@ -138,16 +161,17 @@ class TaskList extends Component<ListProps, ListState> {
 
   render() {
     const {
-      listBasicList: { list },
+      listBasicList: { list, models },
       loading,
     } = this.props;
+
     const {
       form: { getFieldDecorator },
     } = this.props;
 
-    const { visible, done, current = {} } = this.state;
-
-    const editAndDelete = (key: string, currentItem: BasicListItemDataType) => {
+    const { visible, done, current } = this.state;
+    current.meta = current.meta || { ...emptyTask.meta };
+    const editAndDelete = (key: string, currentItem: TaskStatsType) => {
       if (key === 'edit') this.showEditModal(currentItem);
       else if (key === 'delete') {
         Modal.confirm({
@@ -155,7 +179,7 @@ class TaskList extends Component<ListProps, ListState> {
           content: '确定删除该任务吗？',
           okText: '确认',
           cancelText: '取消',
-          onOk: () => this.deleteItem(currentItem.id),
+          onOk: () => this.deleteItem(currentItem.meta.id),
         });
       }
     };
@@ -176,17 +200,6 @@ class TaskList extends Component<ListProps, ListState> {
       </div>
     );
 
-    const extraContent = (
-      <div className={styles.extraContent}>
-        <RadioGroup defaultValue="all">
-          <RadioButton value="all">全部</RadioButton>
-          <RadioButton value="progress">进行中</RadioButton>
-          <RadioButton value="waiting">等待中</RadioButton>
-        </RadioGroup>
-        <Search className={styles.extraContentSearch} placeholder="请输入" onSearch={() => ({})} />
-      </div>
-    );
-
     const paginationProps = {
       showSizeChanger: true,
       showQuickJumper: true,
@@ -195,27 +208,37 @@ class TaskList extends Component<ListProps, ListState> {
     };
 
     const ListContent = ({
-      data: { owner, createdAt, percent, status },
+      data: {
+        meta: { total, hit, createAt, accuracy },
+      },
     }: {
-      data: BasicListItemDataType;
+      data: TaskStatsType;
     }) => (
       <div className={styles.listContent}>
         <div className={styles.listContentItem}>
-          <span>创建者</span>
-          <p>{owner}</p>
+          <span>总报文数</span>
+          <p>{total}</p>
         </div>
         <div className={styles.listContentItem}>
-          <span>开始时间</span>
-          <p>{moment(createdAt).format('YYYY-MM-DD HH:mm')}</p>
+          <span>正确数</span>
+          <p>{hit}</p>
         </div>
         <div className={styles.listContentItem}>
-          <Progress percent={percent} status={status} strokeWidth={6} style={{ width: 180 }} />
+          <span>提交时间</span>
+          <p>{createAt}</p>
+        </div>
+        <div className={styles.listContentItem}>
+          <Progress
+            percent={Number((accuracy * 100).toFixed(2))}
+            strokeWidth={6}
+            style={{ width: 180 }}
+          />
         </div>
       </div>
     );
 
     const MoreBtn: React.FC<{
-      item: BasicListItemDataType;
+      item: TaskStatsType;
     }> = ({ item }) => (
       <Dropdown
         overlay={
@@ -252,37 +275,25 @@ class TaskList extends Component<ListProps, ListState> {
           <FormItem label="任务名称" {...this.formLayout}>
             {getFieldDecorator('title', {
               rules: [{ required: true, message: '请输入任务名称' }],
-              initialValue: current.title,
+              initialValue: current && current.meta && current.meta.taskName,
             })(<Input placeholder="请输入" />)}
           </FormItem>
-          <FormItem label="开始时间" {...this.formLayout}>
-            {getFieldDecorator('createdAt', {
-              rules: [{ required: true, message: '请选择开始时间' }],
-              initialValue: current.createdAt ? moment(current.createdAt) : null,
-            })(
-              <DatePicker
-                showTime
-                placeholder="请选择"
-                format="YYYY-MM-DD HH:mm:ss"
-                style={{ width: '100%' }}
-              />,
-            )}
-          </FormItem>
-          <FormItem label="任务负责人" {...this.formLayout}>
+          <FormItem label="训练模型" {...this.formLayout}>
             {getFieldDecorator('owner', {
-              rules: [{ required: true, message: '请选择任务负责人' }],
-              initialValue: current.owner,
+              rules: [{ required: true, message: '请选择训练模型' }],
+              initialValue: current.meta.modelType,
             })(
               <Select placeholder="请选择">
-                <SelectOption value="付晓晓">付晓晓</SelectOption>
-                <SelectOption value="周毛毛">周毛毛</SelectOption>
+                {models.map((item, index) => (
+                  <SelectOption value={index}>{item.modelName}</SelectOption>
+                ))}
               </Select>,
             )}
           </FormItem>
-          <FormItem {...this.formLayout} label="产品描述">
+          <FormItem {...this.formLayout} label="任务描述">
             {getFieldDecorator('subDescription', {
-              rules: [{ message: '请输入至少五个字符的产品描述！', min: 5 }],
-              initialValue: current.subDescription,
+              rules: [{ message: '请输入至少五个字符的任务描述！', min: 5 }],
+              initialValue: current.meta.description,
             })(<TextArea rows={4} placeholder="请输入至少五个字符" />)}
           </FormItem>
         </Form>
@@ -295,10 +306,10 @@ class TaskList extends Component<ListProps, ListState> {
             <Card bordered={false}>
               <Row>
                 <Col sm={8} xs={24}>
-                  <Info title="我的训练" value="8个任务" bordered />
+                  <Info title="我的识别" value="8个任务" bordered />
                 </Col>
                 <Col sm={8} xs={24}>
-                  <Info title="训练任务平均处理时间" value="1分钟" bordered />
+                  <Info title="报文识别效率" value="10条/秒" bordered />
                 </Col>
                 <Col sm={8} xs={24}>
                   <Info title="完成任务数" value="24个任务" />
@@ -309,12 +320,12 @@ class TaskList extends Component<ListProps, ListState> {
             <Card
               className={styles.listCard}
               bordered={false}
-              title="基本列表"
+              title="识别任务"
               style={{ marginTop: 24 }}
               bodyStyle={{ padding: '0 32px 40px 32px' }}
-              extra={extraContent}
             >
               <Button
+                size="large"
                 type="dashed"
                 style={{ width: '100%', marginBottom: 8 }}
                 icon="plus"
@@ -324,7 +335,7 @@ class TaskList extends Component<ListProps, ListState> {
                   this.addBtn = findDOMNode(component) as HTMLButtonElement;
                 }}
               >
-                添加
+                创建新任务
               </Button>
               <List
                 size="large"
@@ -348,8 +359,12 @@ class TaskList extends Component<ListProps, ListState> {
                     ]}
                   >
                     <List.Item.Meta
-                      title={<a href={item.href}>{item.title}</a>}
-                      description={item.subDescription}
+                      title={
+                        <a href={`/list/basic/detail/${item.meta.taskName}`}>
+                          {item.meta.taskName}
+                        </a>
+                      }
+                      description={item.meta.description}
                     />
                     <ListContent data={item} />
                   </List.Item>

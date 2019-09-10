@@ -1,12 +1,19 @@
 import request from '@/utils/request';
-import { BasicListItemDataType } from './data.d';
+import { TaskStatsType } from '@/pages/list/basic/list/data';
+// import { BasicListItemDataType } from './data.d';
 
-interface ParamsType extends Partial<BasicListItemDataType> {
+interface ParamsType extends Partial<TaskStatsType> {
   count?: number;
 }
 
-export async function queryFakeList(params: ParamsType) {
-  return request('/api/fake_list', {
+export async function queryTaskList(params: ParamsType) {
+  return request('/api/task_list', {
+    params,
+  });
+}
+
+export async function queryModelList(params: ParamsType) {
+  return request('/api/model_list', {
     params,
   });
 }

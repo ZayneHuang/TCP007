@@ -1,11 +1,18 @@
 import { AnyAction, Reducer } from 'redux';
 import { EffectsCommandMap } from 'dva';
-import { addFakeList, queryFakeList, removeFakeList, updateFakeList } from './service';
+import {
+  addFakeList,
+  queryModelList,
+  queryTaskList,
+  removeFakeList,
+  updateFakeList,
+} from './service';
 
-import { BasicListItemDataType } from './data.d';
+import { TaskStatsType, TrainModelType } from './data.d';
 
 export interface StateType {
-  list: BasicListItemDataType[];
+  list: TaskStatsType[];
+  models: TrainModelType[];
 }
 
 export type Effect = (
@@ -18,10 +25,12 @@ export interface ModelType {
   state: StateType;
   effects: {
     fetch: Effect;
+    fetchModels: Effect;
     appendFetch: Effect;
     submit: Effect;
   };
   reducers: {
+    queryModels: Reducer<StateType>;
     queryList: Reducer<StateType>;
     appendList: Reducer<StateType>;
   };
@@ -32,18 +41,26 @@ const Model: ModelType = {
 
   state: {
     list: [],
+    models: [],
   },
 
   effects: {
     *fetch({ payload }, { call, put }) {
-      const response = yield call(queryFakeList, payload);
+      const response = yield call(queryTaskList, payload);
       yield put({
         type: 'queryList',
         payload: Array.isArray(response) ? response : [],
       });
     },
+    *fetchModels({ payload }, { call, put }) {
+      const response = yield call(queryModelList, payload);
+      yield put({
+        type: 'queryModels',
+        payload: Array.isArray(response) ? response : [],
+      });
+    },
     *appendFetch({ payload }, { call, put }) {
-      const response = yield call(queryFakeList, payload);
+      const response = yield call(queryTaskList, payload);
       yield put({
         type: 'appendList',
         payload: Array.isArray(response) ? response : [],
@@ -65,13 +82,19 @@ const Model: ModelType = {
   },
 
   reducers: {
-    queryList(state, action) {
+    queryModels(state: StateType = { list: [], models: [] }, action) {
+      return {
+        ...state,
+        models: action.payload,
+      };
+    },
+    queryList(state: StateType = { list: [], models: [] }, action) {
       return {
         ...state,
         list: action.payload,
       };
     },
-    appendList(state = { list: [] }, action) {
+    appendList(state: StateType = { list: [], models: [] }, action) {
       return {
         ...state,
         list: state.list.concat(action.payload),
