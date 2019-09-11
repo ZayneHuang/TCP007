@@ -40,13 +40,13 @@ interface TaskMetaType {
 
 interface TaskInfoType {
   protocol: string;
-  All: number;
-  TP: number;
-  FN: number;
-  FP: number;
-  recall: number;
-  precision: number;
-  f1: number;
+  All_cnt: number;
+  TP: number; //真正例
+  FN: number; //假负例
+  FP: number; //假正例
+  recall_score: number; //召回率
+  precision_score: number; //准确率
+  f1_score: number; //f1值
 }
 
 export interface TaskStatsType {

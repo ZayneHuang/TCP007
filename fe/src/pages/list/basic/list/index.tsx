@@ -12,9 +12,9 @@ import {
   Progress,
   Result,
   Row,
-  Select,
+  Select, Table,
 } from 'antd';
-import { Chart, Geom, Axis, Tooltip, Legend } from 'bizcharts';
+import { Chart, Geom, Axis, Tooltip } from 'bizcharts';
 import React, { Component } from 'react';
 import DataSet from '@antv/data-set';
 
@@ -40,6 +40,7 @@ interface ListProps extends FormComponentProps {
 interface ListState {
   visible: boolean;
   done: boolean;
+  preview: boolean;
   current: TaskStatsType;
 }
 
@@ -75,6 +76,7 @@ class TaskList extends Component<ListProps, ListState> {
   state: ListState = {
     visible: false,
     done: false,
+    preview: false,
     current: {
       ...emptyTask,
     },
@@ -115,6 +117,7 @@ class TaskList extends Component<ListProps, ListState> {
   showEditModal = (item: TaskStatsType) => {
     this.setState({
       visible: true,
+      preview: true,
       current: item,
     });
   };
@@ -123,6 +126,7 @@ class TaskList extends Component<ListProps, ListState> {
     setTimeout(() => this.addBtn && this.addBtn.blur(), 0);
     this.setState({
       done: false,
+      preview: false,
       visible: false,
     });
   };
@@ -131,6 +135,7 @@ class TaskList extends Component<ListProps, ListState> {
     setTimeout(() => this.addBtn && this.addBtn.blur(), 0);
     this.setState({
       visible: false,
+      preview: false,
     });
   };
 
@@ -170,123 +175,62 @@ class TaskList extends Component<ListProps, ListState> {
     const {
       form: { getFieldDecorator },
     } = this.props;
+    let dv = new DataSet.View().source(list.map(item => item.meta));
 
-    let data = [
-      {
-        year: '1986',
-        ACME: 162,
-        Compitor: 42,
-      },
-      {
-        year: '1987',
-        ACME: 134,
-        Compitor: 54,
-      },
-      {
-        year: '1988',
-        ACME: 116,
-        Compitor: 26,
-      },
-      {
-        year: '1989',
-        ACME: 122,
-        Compitor: 32,
-      },
-      {
-        year: '1990',
-        ACME: 178,
-        Compitor: 68,
-      },
-      {
-        year: '1991',
-        ACME: 144,
-        Compitor: 54,
-      },
-      {
-        year: '1992',
-        ACME: 125,
-        Compitor: 35,
-      },
-      {
-        year: '1993',
-        ACME: 176,
-        Compitor: 66,
-      },
-      {
-        year: '1994',
-        ACME: 156,
-      },
-      {
-        year: '1995',
-        ACME: 195,
-      },
-      {
-        year: '1996',
-        ACME: 215,
-      },
-      {
-        year: '1997',
-        ACME: 176,
-        Compitor: 36,
-      },
-      {
-        year: '1998',
-        ACME: 167,
-        Compitor: 47,
-      },
-      {
-        year: '1999',
-        ACME: 142,
-      },
-      {
-        year: '2000',
-        ACME: 117,
-      },
-      {
-        year: '2001',
-        ACME: 113,
-        Compitor: 23,
-      },
-      {
-        year: '2002',
-        ACME: 132,
-      },
-      {
-        year: '2003',
-        ACME: 146,
-        Compitor: 46,
-      },
-      {
-        year: '2004',
-        ACME: 169,
-        Compitor: 59,
-      },
-      {
-        year: '2005',
-        ACME: 184,
-        Compitor: 44,
-      },
-    ];
-    let dv = new DataSet.View().source(data);
-    dv.transform({
-      type: 'fold',
-      fields: ['ACME'],
-      key: 'type',
-      value: 'value',
-    });
     const scale = {
-      value: {
-        alias: 'The Share Price in Dollars',
-        formatter: function(val: string) {
-          return `${val}%`;
+      accuracy: {
+        alias: '准确率',
+        tickCount: 5,
+        min: 0,
+        max: 1,
+        formatter: function(val: number) {
+          return `${(val*100).toFixed(2)}%`;
         },
       },
-      year: {
-        range: [0, 1],
+      createAt: {
+        type: 'time'
       },
     };
 
-    const { visible, done, current } = this.state;
+    const columns = [
+      {
+        title: '协议类型',
+        dataIndex: 'protocol',
+      },
+      {
+        title: '总数',
+        dataIndex: 'All_cnt',
+      },
+      {
+        title: '真正例(TP)',
+        dataIndex: 'TP',
+      },
+      {
+        title: '假负例(FN)',
+        dataIndex: 'FN',
+      },
+      {
+        title: '假正例(FP)',
+        dataIndex: 'FP',
+      },
+      {
+        title: '召回率',
+        dataIndex: 'recall_score',
+        render: (item: number) => item.toFixed(2)
+      },
+      {
+        title: '准确率',
+        dataIndex: 'precision_score',
+        render: (item: number) => item.toFixed(2)
+      },
+      {
+        title: 'f1值',
+        dataIndex: 'f1_score',
+        render: (item: number) => item.toFixed(2)
+      },
+    ]
+
+    const { visible, done, preview, current } = this.state;
     current.meta = current.meta || { ...emptyTask.meta };
     const editAndDelete = (key: string, currentItem: TaskStatsType) => {
       if (key === 'edit') this.showEditModal(currentItem);
@@ -301,7 +245,7 @@ class TaskList extends Component<ListProps, ListState> {
       }
     };
 
-    const modalFooter = done
+    const modalFooter = done || preview
       ? { footer: null, onCancel: this.handleDone }
       : { okText: '保存', onOk: this.handleSubmit, onCancel: this.handleCancel };
 
@@ -387,6 +331,11 @@ class TaskList extends Component<ListProps, ListState> {
           />
         );
       }
+      if (preview) {
+        return (
+          <Table dataSource={current.list} columns={columns} rowKey="protocol" size="small"/>
+        )
+      }
       return (
         <Form onSubmit={this.handleSubmit}>
           <FormItem label="任务名称" {...this.formLayout}>
@@ -436,9 +385,8 @@ class TaskList extends Component<ListProps, ListState> {
                 <Chart height={200} data={dv} padding={'auto'} scale={scale} forceFit>
                   <Tooltip crosshairs />
                   <Axis />
-                  <Legend />
-                  <Geom type="area" position="year*value" color="type" shape="smooth" />
-                  <Geom type="line" position="year*value" color="type" shape="smooth" size={2} />
+                  <Geom type="area" position="createAt*accuracy" shape="smooth" />
+                  <Geom type="line" position="createAt*accuracy" shape="smooth" size={2} />
                 </Chart>
               </Row>
             </Card>
