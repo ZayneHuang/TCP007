@@ -121,12 +121,14 @@ export default {
               icon: 'bar-chart',
               path: '/dashboard/analysis',
               component: './dashboard/analysis',
+              hideInMenu: 'true',
             },
             {
-              name: 'list',
+              name: 'taskdetail',
               icon: 'unordered-list',
-              path: '/list/table/list',
-              component: './list/table/list',
+              path: '/list/basic/detail/:taskID',
+              component: './list/basic/detail',
+              hideInMenu: 'true',
             },
             {
               name: 'tasklist',

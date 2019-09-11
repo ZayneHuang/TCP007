@@ -26,7 +26,7 @@ import { StateType } from './model';
 import CreateForm from './components/CreateForm';
 import StandardTable, { StandardTableColumnProps } from './components/StandardTable';
 import UpdateForm, { FormValsType } from './components/UpdateForm';
-import { TableListItem, TableListPagination, TableListParams } from './data.d';
+import { TableListItem, TableListPagination, TableListParams } from './data';
 
 import styles from './style.less';
 

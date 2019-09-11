@@ -29,7 +29,6 @@ export interface Member {
 // }
 
 interface TaskMetaType {
-  id: number;
   taskName: string;
   description: string;
   createAt: string;
@@ -51,6 +50,7 @@ interface TaskInfoType {
 }
 
 export interface TaskStatsType {
+  id: number;
   meta: TaskMetaType;
   list: TaskInfoType[];
 }

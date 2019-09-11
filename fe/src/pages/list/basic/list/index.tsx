@@ -14,7 +14,9 @@ import {
   Row,
   Select,
 } from 'antd';
+import { Chart, Geom, Axis, Tooltip, Legend } from 'bizcharts';
 import React, { Component } from 'react';
+import DataSet from '@antv/data-set';
 
 import { Dispatch } from 'redux';
 import { FormComponentProps } from 'antd/es/form';
@@ -42,8 +44,8 @@ interface ListState {
 }
 
 const emptyTask: TaskStatsType = {
+  id: 0,
   meta: {
-    id: 0,
     taskName: '',
     description: '',
     createAt: '',
@@ -90,13 +92,13 @@ class TaskList extends Component<ListProps, ListState> {
     dispatch({
       type: 'listBasicList/fetch',
       payload: {
-        count: 5,
+        count: 10,
       },
     });
     dispatch({
       type: 'listBasicList/fetchModels',
       payload: {
-        count: 5,
+        count: 10,
       },
     });
   }
@@ -136,7 +138,7 @@ class TaskList extends Component<ListProps, ListState> {
     e.preventDefault();
     const { dispatch, form } = this.props;
     const { current } = this.state;
-    const id = current && current.meta ? current.meta.id : '';
+    const id = current ? current.id : '';
 
     setTimeout(() => this.addBtn && this.addBtn.blur(), 0);
     form.validateFields((err: string | undefined, fieldsValue: TaskStatsType) => {
@@ -169,6 +171,121 @@ class TaskList extends Component<ListProps, ListState> {
       form: { getFieldDecorator },
     } = this.props;
 
+    let data = [
+      {
+        year: '1986',
+        ACME: 162,
+        Compitor: 42,
+      },
+      {
+        year: '1987',
+        ACME: 134,
+        Compitor: 54,
+      },
+      {
+        year: '1988',
+        ACME: 116,
+        Compitor: 26,
+      },
+      {
+        year: '1989',
+        ACME: 122,
+        Compitor: 32,
+      },
+      {
+        year: '1990',
+        ACME: 178,
+        Compitor: 68,
+      },
+      {
+        year: '1991',
+        ACME: 144,
+        Compitor: 54,
+      },
+      {
+        year: '1992',
+        ACME: 125,
+        Compitor: 35,
+      },
+      {
+        year: '1993',
+        ACME: 176,
+        Compitor: 66,
+      },
+      {
+        year: '1994',
+        ACME: 156,
+      },
+      {
+        year: '1995',
+        ACME: 195,
+      },
+      {
+        year: '1996',
+        ACME: 215,
+      },
+      {
+        year: '1997',
+        ACME: 176,
+        Compitor: 36,
+      },
+      {
+        year: '1998',
+        ACME: 167,
+        Compitor: 47,
+      },
+      {
+        year: '1999',
+        ACME: 142,
+      },
+      {
+        year: '2000',
+        ACME: 117,
+      },
+      {
+        year: '2001',
+        ACME: 113,
+        Compitor: 23,
+      },
+      {
+        year: '2002',
+        ACME: 132,
+      },
+      {
+        year: '2003',
+        ACME: 146,
+        Compitor: 46,
+      },
+      {
+        year: '2004',
+        ACME: 169,
+        Compitor: 59,
+      },
+      {
+        year: '2005',
+        ACME: 184,
+        Compitor: 44,
+      },
+    ];
+    let dv = new DataSet.View().source(data);
+    dv.transform({
+      type: 'fold',
+      fields: ['ACME'],
+      key: 'type',
+      value: 'value',
+    });
+    const scale = {
+      value: {
+        alias: 'The Share Price in Dollars',
+        formatter: function(val: string) {
+          return `${val}%`;
+        },
+      },
+      year: {
+        range: [0, 1],
+      },
+    };
+
     const { visible, done, current } = this.state;
     current.meta = current.meta || { ...emptyTask.meta };
     const editAndDelete = (key: string, currentItem: TaskStatsType) => {
@@ -179,7 +296,7 @@ class TaskList extends Component<ListProps, ListState> {
           content: '确定删除该任务吗？',
           okText: '确认',
           cancelText: '取消',
-          onOk: () => this.deleteItem(currentItem.meta.id),
+          onOk: () => this.deleteItem(currentItem.id),
         });
       }
     };
@@ -203,8 +320,8 @@ class TaskList extends Component<ListProps, ListState> {
     const paginationProps = {
       showSizeChanger: true,
       showQuickJumper: true,
-      pageSize: 5,
-      total: 50,
+      pageSize: 10,
+      total: 10,
     };
 
     const ListContent = ({
@@ -243,7 +360,7 @@ class TaskList extends Component<ListProps, ListState> {
       <Dropdown
         overlay={
           <Menu onClick={({ key }) => editAndDelete(key, item)}>
-            <Menu.Item key="edit">统计</Menu.Item>
+            <Menu.Item key="edit">概览</Menu.Item>
             <Menu.Item key="delete">删除</Menu.Item>
           </Menu>
         }
@@ -281,11 +398,11 @@ class TaskList extends Component<ListProps, ListState> {
           <FormItem label="训练模型" {...this.formLayout}>
             {getFieldDecorator('owner', {
               rules: [{ required: true, message: '请选择训练模型' }],
-              initialValue: current.meta.modelType,
+              initialValue: String(current.meta.modelType),
             })(
               <Select placeholder="请选择">
-                {models.map((item, index) => (
-                  <SelectOption value={index}>{item.modelName}</SelectOption>
+                {models.map(item => (
+                  <SelectOption key={String(item.id)}>{item.modelName}</SelectOption>
                 ))}
               </Select>,
             )}
@@ -314,6 +431,15 @@ class TaskList extends Component<ListProps, ListState> {
                 <Col sm={8} xs={24}>
                   <Info title="完成任务数" value="24个任务" />
                 </Col>
+              </Row>
+              <Row>
+                <Chart height={200} data={dv} padding={'auto'} scale={scale} forceFit>
+                  <Tooltip crosshairs />
+                  <Axis />
+                  <Legend />
+                  <Geom type="area" position="year*value" color="type" shape="smooth" />
+                  <Geom type="line" position="year*value" color="type" shape="smooth" size={2} />
+                </Chart>
               </Row>
             </Card>
 
@@ -353,18 +479,15 @@ class TaskList extends Component<ListProps, ListState> {
                           this.showEditModal(item);
                         }}
                       >
-                        统计
+                        概览
                       </a>,
                       <MoreBtn key="more" item={item} />,
                     ]}
                   >
                     <List.Item.Meta
-                      title={
-                        <a href={`/list/basic/detail/${item.meta.taskName}`}>
-                          {item.meta.taskName}
-                        </a>
-                      }
+                      title={<a href={`/list/basic/detail/${item.id}`}>{item.meta.taskName}</a>}
                       description={item.meta.description}
+                      className={styles.listItemMeta}
                     />
                     <ListContent data={item} />
                   </List.Item>

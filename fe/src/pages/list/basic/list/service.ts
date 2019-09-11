@@ -6,13 +6,13 @@ interface ParamsType extends Partial<TaskStatsType> {
   count?: number;
 }
 
-export async function queryTaskList(params: ParamsType) {
+export async function queryTaskList(params?: ParamsType) {
   return request('/api/task_list', {
     params,
   });
 }
 
-export async function queryModelList(params: ParamsType) {
+export async function queryModelList(params?: ParamsType) {
   return request('/api/model_list', {
     params,
   });

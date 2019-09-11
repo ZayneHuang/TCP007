@@ -2,7 +2,7 @@ import { AnyAction, Reducer } from 'redux';
 import { EffectsCommandMap } from 'dva';
 import { addRule, queryRule, removeRule, updateRule } from './service';
 
-import { TableListData } from './data.d';
+import { TableListData } from './data';
 
 export interface StateType {
   data: TableListData;
