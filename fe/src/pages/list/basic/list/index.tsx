@@ -202,15 +202,15 @@ class TaskList extends Component<ListProps, ListState> {
         dataIndex: 'All_cnt',
       },
       {
-        title: '真正例(TP)',
+        title: '真正例/TP',
         dataIndex: 'TP',
       },
       {
-        title: '假负例(FN)',
+        title: '假负例/FN',
         dataIndex: 'FN',
       },
       {
-        title: '假正例(FP)',
+        title: '假正例/FP',
         dataIndex: 'FP',
       },
       {
@@ -270,12 +270,21 @@ class TaskList extends Component<ListProps, ListState> {
 
     const ListContent = ({
       data: {
-        meta: { total, hit, createAt, accuracy },
+        meta: { total, hit, createAt, accuracy, modelType },
       },
     }: {
       data: TaskStatsType;
     }) => (
       <div className={styles.listContent}>
+        <div className={styles.listContentItem}>
+          <span>使用模型</span>
+          <p>{
+            models.find(item => item.id === modelType)
+              // @ts-ignore
+              ? models.find(item => item.id === modelType).modelName
+              : ''
+          }</p>
+        </div>
         <div className={styles.listContentItem}>
           <span>总报文数</span>
           <p>{total}</p>
@@ -433,7 +442,7 @@ class TaskList extends Component<ListProps, ListState> {
                     ]}
                   >
                     <List.Item.Meta
-                      title={<a href={`/list/basic/detail/${item.id}`}>{item.meta.taskName}</a>}
+                      title={<a href={`/list/basic/detail/${item.meta.taskName}`}>{item.meta.taskName}</a>}
                       description={item.meta.description}
                       className={styles.listItemMeta}
                     />

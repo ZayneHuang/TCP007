@@ -171,7 +171,7 @@ class TableList extends Component<TableListProps, TableListState> {
         <Fragment>
           <a onClick={() => this.handleUpdateModalVisible(true, record)}>移除</a>
           <Divider type="vertical" />
-          <a href="">加入模型</a>
+          <a href="">加入聚类</a>
         </Fragment>
       ),
     },
@@ -276,6 +276,9 @@ class TableList extends Component<TableListProps, TableListState> {
         updatedAt: fieldsValue.updatedAt && fieldsValue.updatedAt.valueOf(),
       };
       values.name = protocal.indexOf(values.name);
+      if (values.name === -1){
+        values.name = null
+      }
       this.setState({
         formValues: values,
       });
